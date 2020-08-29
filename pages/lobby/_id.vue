@@ -2,25 +2,40 @@
   <section class="section">
     <div class="container">
       <div class="columns">
-        <div class="column is-8-desktop is-offset-2-desktop">
+        <div class="column is-3-desktop">
           <div class="content">
-            <h3>Lobby</h3>
-            <p>Register a name to check-in to the tournament.</p>
-            <b-field label="Name">
-              <b-input v-model="name" />
-            </b-field>
-            <div class="has-text-right is-2">
-              <b-button
-                type="is-primary is-light"
-                @click="checkIn"
-              >
-                Check-In
-              </b-button>
+            <div id="check-in" class="">
+              <p>Register a name to check-in to the tournament.</p>
+              <b-field label="Name">
+                <b-input v-model="name" />
+              </b-field>
+              <div class="has-text-right">
+                <b-button
+                  type="is-primary is-light"
+                  @click="checkIn"
+                >
+                  Check-In
+                </b-button>
+              </div>
               <hr>
-              <b-table :data="list" :columns="columns" />
+              <h3>Lobby</h3>
+              <b-table :data="list" :columns="list_cols" />
             </div>
           </div>
         </div>
+        <div class="column is-6-desktop">
+          <div class="content has-text-centered">
+            <b-button
+              type="is-primary is-danger"
+              @click="startTournament"
+            >
+              Begin Tournament
+            </b-button>
+            <hr>
+            <b-table :data="matches" :columns="matches_cols" />
+          </div>
+        </div>
+        <div class="column is-2-desktop" />
       </div>
     </div>
   </section>
@@ -35,10 +50,25 @@ export default {
       id: '',
       name: '',
       list: [],
-      columns: [
+      matches: [],
+      list_cols: [
         {
           field: 'name',
           label: 'Name'
+        }
+      ],
+      matches_cols: [
+        {
+          field: 'round',
+          label: 'Round'
+        },
+        {
+          field: 'player1Id',
+          label: 'Player 1'
+        },
+        {
+          field: 'player2Id',
+          label: 'Player 2'
         }
       ]
     }
@@ -56,10 +86,13 @@ export default {
       if (data.status === 'success') {
         console.log('successfully joined lobby')
         this.socket.emit('getList', { id })
-        this.joinLobbySuccess(data)
+        this.notify('Joined lobby!')
+
+        console.log('getMatches', id)
+        this.socket.emit('getMatches', { id })
       } else if (data.status === 'failed') {
         console.log('failed joining lobby')
-        this.joinLobbyFail(data)
+        this.alertFail(data)
       }
     })
 
@@ -71,18 +104,39 @@ export default {
           list.push({ name })
         })
         this.list = list
-        // this.$set(this, 'list', data)
-        // console.log('reactive', this.list)
-        // this.$forceUpdate()
       }
     })
 
     this.socket.on('checkedIn', (data) => {
       console.log('receive checkedIn broadcast from server', data)
-      // this.list.push({ name: data.name })
       this.socket.emit('getList', { id: this.id })
-      console.log(this.list)
     })
+
+    this.socket.on('checkInFail', (data) => {
+      console.log('receive checkedInFail response from server', data)
+      this.alert('The name you entered is taken: ' + data.name)
+    })
+
+    this.socket.on('startTournament', (data) => {
+      console.log('receive startTournament broadcast from server', data)
+      if (data.status === 'success') {
+        this.notify('Tournament has begun!')
+        this.socket.emit('getMatches', { id: this.id })
+      } else if (data.status === 'failed') {
+        this.alertFail(data)
+      }
+    })
+
+    this.socket.on('getMatches', (data) => {
+      console.log('receive getMatches response from server', data)
+      if (data.status === 'success') {
+        this.matches = this.processMatches(data.matches)
+      } else if (data.status === 'failed') {
+        this.alertFail(data)
+      }
+    })
+
+    // startup
     console.log('joinLobby', id)
     this.joinLobby(id)
   },
@@ -90,22 +144,40 @@ export default {
     checkIn () {
       const id = this.id
       const name = this.name
-      console.log(name)
+      console.log('emit checkIn', name)
       this.socket.emit('checkIn', { id, name })
     },
     joinLobby (id) {
       console.log('emit joinLobby')
       this.socket.emit('joinLobby', { id })
     },
-    joinLobbySuccess (data) {
-      // const id = data.id
-      this.$buefy.notification.open('Joined lobby!')
-
-      // const msg = `Join your
-      // tournament lobby here: <h1 class="title is-2 is-spaced"><a href="/lobby/${id}">/lobby/${id}</a></h1>`
-      // this.$buefy.dialog.alert(msg)
+    startTournament () {
+      console.log('emit startTournament')
+      this.socket.emit('startTournament', { id: this.id })
     },
-    joinLobbyFail (data) {
+    processMatches (matchesResponse) {
+      const matches = []
+      matchesResponse.forEach((m) => {
+        m = m.match
+        matches.push({
+          round: m.round,
+          state: m.state,
+          player1Id: m.player1Id,
+          player2Id: m.player2Id,
+          winnerId: m.winnerId,
+          loserId: m.loserId
+        })
+      })
+      console.log(matches)
+      return matches
+    },
+    notify (msg) {
+      this.$buefy.notification.open(msg)
+    },
+    alert (msg) {
+      this.$buefy.dialog.alert(msg)
+    },
+    alertFail (data) {
       const msg = data.message
       this.$buefy.dialog.alert({
         title: 'Error',
