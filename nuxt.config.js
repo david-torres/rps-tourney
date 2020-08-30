@@ -54,8 +54,33 @@ export default {
   modules: [
     // Doc: https://buefy.github.io/#/documentation
     'nuxt-buefy',
-    'nuxt-socket-io'
+    'nuxt-socket-io',
+    'nuxt-fontawesome'
   ],
+  buefy: {
+    materialDesignIcons: false,
+    defaultIconPack: 'fas',
+    defaultIconComponent: 'font-awesome-icon',
+    customIconPacks: {
+      fas: {
+        sizes: {
+          default: 'lg',
+          'is-small': '',
+          'is-medium': '2x',
+          'is-large': '3x'
+        },
+        iconPrefix: ''
+      }
+    }
+  },
+  fontawesome: {
+    imports: [
+      {
+        set: '@fortawesome/free-solid-svg-icons',
+        icons: ['fas']
+      }
+    ]
+  },
   io: {
     // module options
     sockets: [{
