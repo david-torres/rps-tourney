@@ -4,8 +4,8 @@
       <div class="columns">
         <div class="column is-3-desktop">
           <div class="content">
-            <h4 v-if="name" class="subtitle">
-              You are checked-in as: {{ name }}
+            <h4 v-if="checked_in" class="subtitle">
+              Checked-in as: {{ name }}
             </h4>
             <h6 v-else class="subtitle">
               You are <strong>NOT</strong> checked-in!
@@ -13,7 +13,7 @@
             <div v-if="!checked_in" id="check-in">
               <p>Register a name to check-in to the tournament.</p>
               <b-field label="Name">
-                <b-input v-model="name" />
+                <b-input v-model="name" maxlength="20" size="is-medium" />
               </b-field>
               <div class="has-text-right">
                 <b-button
@@ -72,13 +72,23 @@
             <h4 v-else class="title">
               Tournament in progress
             </h4>
-            <hr>
+          </div>
+          <div class="is-2">
+            <b-menu>
+              <b-menu-list label="Menu">
+                <b-menu-item icon="play-circle" label="Begin Matches" class="menu-icon is-medium" :disabled="matches.length === 0" @click="startMatches" />
+              </b-menu-list>
+            </b-menu>
+          </div>
+          <hr>
+
+          <div>
             <b-table :data="matches" :striped="true" :narrowed="true" :hoverable="true">
               <template slot-scope="props">
-                <b-table-column field="round" label="Round" width="10" class="has-text-centered">
+                <b-table-column field="round" label="Round" width="20" class="has-text-centered">
                   {{ props.row.round }}
                 </b-table-column>
-                <b-table-column label="State" width="20">
+                <b-table-column label="State" width="100">
                   {{ props.row.state }}
                 </b-table-column>
                 <b-table-column label="Player 1">
@@ -109,42 +119,35 @@
         <div class="column is-2-desktop" />
       </div>
     </div>
+    <b-modal
+      v-model="game_active"
+      has-modal-card
+      trap-focus
+      can-cancel
+      :destroy-on-hide="false"
+      aria-role="dialog"
+      aria-modal
+    >
+      <Game />
+    </b-modal>
   </section>
 </template>
 
 <script>
+import Game from '../../components/game.vue'
+
 export default {
   name: 'Lobby',
-  components: {},
+  components: { Game },
   data () {
     return {
       id: '',
       name: '',
       checked_in: false,
+      game_active: false,
       participants: [],
       matches: [],
-      matches_cols: [
-        {
-          field: 'round',
-          label: 'Round'
-        },
-        {
-          field: 'state',
-          label: 'State'
-        },
-        {
-          field: 'player1Name',
-          label: 'Player 1'
-        },
-        {
-          field: 'player2Name',
-          label: 'Player 2'
-        },
-        {
-          field: 'winnerName',
-          label: 'Winner'
-        }
-      ]
+      current_game: {}
     }
   },
   mounted () {
@@ -155,6 +158,7 @@ export default {
     this.socket = this.$nuxtSocket({})
 
     this.socket.on('connect', () => console.log('socket connected'))
+    this.socket.on('disconnect', () => console.log('socket disconnected'))
 
     this.socket.on('joinLobby', (data) => {
       console.log('receive joinLobby response from server', data)
@@ -183,6 +187,24 @@ export default {
     this.socket.on('checkedIn', (data) => {
       console.log('receive checkedIn broadcast from server', data)
       this.socket.emit('getParticipants', { id: this.id })
+    })
+
+    this.socket.on('joinGame', (data) => {
+      console.log('receive joinGame response from server', data)
+      this.current_game = data
+      this.game_active = true
+      this.$buefy.modal.open({
+        parent: this,
+        component: Game,
+        hasModalCard: true,
+        trapFocus: true,
+        canCancel: false,
+        props: { id: this.id, game: this.current_game, name: this.name }
+      })
+    })
+
+    this.socket.on('startedGame', (data) => {
+      console.log('receive startedGame broadcast from server')
     })
 
     this.socket.on('startTournament', (data) => {
@@ -239,6 +261,10 @@ export default {
       console.log('emit startTournament')
       this.socket.emit('startTournament', { id: this.id })
     },
+    startMatches () {
+      console.log('emit startMatches')
+      this.socket.emit('startMatches', { id: this.id })
+    },
     processMatches (matchesResponse) {
       const matches = []
 
@@ -267,13 +293,10 @@ export default {
       return matches
     },
     getNameById (id) {
-      // console.log(id)
       let name = ''
       this.participants.forEach((u) => {
-        // console.log(u)
         if (u.id === id) {
           name = u.name
-          // return true
         }
       })
       return name
@@ -301,4 +324,10 @@ export default {
 }
 </script>
 
-<style></style>
+<style>
+  .menu-icon .icon {
+    text-align: center;
+    vertical-align: middle;
+    margin-right: 10px;
+  }
+</style>
