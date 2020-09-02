@@ -55,7 +55,11 @@ export default {
     newTournamentSuccess (data) {
       const id = data.id
       console.log('tournament data', data)
-      this.$buefy.notification.open('New tournament created!')
+      this.$buefy.notification.open({
+        message: 'New tournament created!',
+        type: 'is-success',
+        duration: 3000
+      })
 
       const msg = `Join your
       tournament lobby here: <h1 class="title is-2 is-spaced"><a href="/lobby/${id}">/lobby/${id}</a></h1>`

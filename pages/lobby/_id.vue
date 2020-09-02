@@ -42,7 +42,7 @@
                       {{ props.row.name }}
                     </span>
                   </b-table-column>
-                  <b-table-column label="Connected" width="20" class="has-text-centered">
+                  <b-table-column label="Connected?" width="20" class="has-text-centered">
                     <span>
                       <b-icon
                         pack="fas"
@@ -155,7 +155,7 @@ export default {
     this.id = id
 
     // socket listeners
-    this.socket = this.$nuxtSocket({})
+    this.socket = this.$nuxtSocket({ persist: 'me' })
 
     this.socket.on('connect', () => console.log('socket connected'))
     this.socket.on('disconnect', () => console.log('socket disconnected'))

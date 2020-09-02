@@ -15,31 +15,33 @@
         <h2 class="subtitle is-3 is-spaced">
           Choose your weapon!
         </h2>
-        <b-tooltip label="Rock">
-          <b-button type="is-primary is-light is-large" @click="throwWeapon('rock')">
-            <img src="/img/rock.png" height="50" width="50" alt="Rock" class="game-icon">
-          </b-button>
-        </b-tooltip>
-        <b-tooltip label="Paper">
-          <b-button type="is-primary is-light is-large" @click="throwWeapon('paper')">
-            <img src="/img/folded-paper.png" height="50" width="50" alt="Paper" class="game-icon">
-          </b-button>
-        </b-tooltip>
-        <b-tooltip label="Scissors">
-          <b-button type="is-primary is-light is-large" @click="throwWeapon('scissors')">
-            <img src="/img/scissors.png" height="50" width="50" alt="Scissors" class="game-icon">
-          </b-button>
-        </b-tooltip>
-        <b-tooltip label="Spock">
-          <b-button type="is-primary is-light is-large" @click="throwWeapon('spock')">
-            <img src="/img/palm-vulcan.png" height="50" width="50" alt="Spock" class="game-icon">
-          </b-button>
-        </b-tooltip>
-        <b-tooltip label="Lizard">
-          <b-button type="is-primary is-light is-large" @click="throwWeapon('lizard')">
-            <img src="/img/gecko.png" height="50" width="50" alt="Lizard" class="game-icon">
-          </b-button>
-        </b-tooltip>
+        <b-notification ref="weapon" :closable="false">
+          <b-tooltip label="Rock">
+            <b-button type="is-primary is-light is-large" @click="throwWeapon('rock')">
+              <img src="/img/rock.png" height="50" width="50" alt="Rock" class="game-icon">
+            </b-button>
+          </b-tooltip>
+          <b-tooltip label="Paper">
+            <b-button type="is-primary is-light is-large" @click="throwWeapon('paper')">
+              <img src="/img/folded-paper.png" height="50" width="50" alt="Paper" class="game-icon">
+            </b-button>
+          </b-tooltip>
+          <b-tooltip label="Scissors">
+            <b-button type="is-primary is-light is-large" @click="throwWeapon('scissors')">
+              <img src="/img/scissors.png" height="50" width="50" alt="Scissors" class="game-icon">
+            </b-button>
+          </b-tooltip>
+          <b-tooltip label="Spock">
+            <b-button type="is-primary is-light is-large" @click="throwWeapon('spock')">
+              <img src="/img/palm-vulcan.png" height="50" width="50" alt="Spock" class="game-icon">
+            </b-button>
+          </b-tooltip>
+          <b-tooltip label="Lizard">
+            <b-button type="is-primary is-light is-large" @click="throwWeapon('lizard')">
+              <img src="/img/gecko.png" height="50" width="50" alt="Lizard" class="game-icon">
+            </b-button>
+          </b-tooltip>
+        </b-notification>
       </section>
       <footer class="modal-card-foot" />
     </div>
@@ -79,11 +81,12 @@ export default {
   },
   data () {
     return {
-      opponent: ''
+      opponent: '',
+      spinner: null
     }
   },
   mounted () {
-    this.socket = this.$nuxtSocket({})
+    this.socket = this.$nuxtSocket({ persist: 'me' })
 
     this.socket.on('throwWeapon', (data) => {
       if (data.status === 'success') {
@@ -93,14 +96,24 @@ export default {
       }
     })
 
-    this.socket.on('matchResult', (data) => {
+    this.socket.on('matchResults', (data) => {
+      this.spinner.close()
       if (data.status === 'success') {
-        if (data.winner.name === this.name) {
-          this.$buefy.notification.open('You won!')
+        const game = data.game
+        if (game.winnerName === this.name) {
+          this.$buefy.notification.open({
+            message: 'You Won!',
+            type: 'is-success',
+            duration: 5000
+          })
         } else {
-          this.$buefy.notification.open('You lost')
+          this.$buefy.notification.open({
+            message: 'You Lost...',
+            type: 'is-danger',
+            duration: 5000
+          })
         }
-        this.socket.emit('getMatches')
+        this.socket.emit('getMatches', { id: this.id })
         this.$parent.close()
       } else if (data.status === 'failed') {
         this.$buefy.dialog.alert('Match failed!')
@@ -120,6 +133,9 @@ export default {
     },
     throwWeapon (weapon) {
       console.log('emit throwWeapon', weapon)
+      this.spinner = this.$buefy.loading.open({
+        container: this.$refs.weapon.$el
+      })
       this.socket.emit('throwWeapon', { id: this.id, gameId: this.game.id, weapon })
     }
   }
