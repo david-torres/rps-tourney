@@ -38,7 +38,6 @@
                 <template slot-scope="props">
                   <b-table-column field="name" label="Name">
                     <span :class="props.row.name === name ? 'strong' : ''">
-
                       {{ props.row.name }}
                     </span>
                   </b-table-column>
@@ -180,7 +179,7 @@ export default {
         this.notify('Checked in!')
         this.checked_in = true
       } else {
-        this.alert('The name you entered is taken: ' + data.name)
+        this.alert(data.message)
       }
     })
 
@@ -249,7 +248,7 @@ export default {
   methods: {
     checkIn () {
       const id = this.id
-      const name = this.name
+      const name = this.name = this.name.trim()
       console.log('emit checkIn', name)
       this.socket.emit('checkIn', { id, name })
     },
