@@ -119,6 +119,16 @@ export default {
       }
     })
 
+    this.socket.on('matchTie', (data) => {
+      console.log('received matchTie')
+      this.$parent.close()
+      this.$buefy.notification.open({
+        message: 'Tie! Throw again',
+        type: 'is-info',
+        duration: 1000
+      })
+    })
+
     console.log('game component mounted')
     this.opponent = this.getOpponentName()
   },

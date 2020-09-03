@@ -8,12 +8,13 @@
           </h1>
         </b-navbar-item>
       </template>
-      <!-- <template slot="start">
-        <b-navbar-item href="#">
+      <template slot="start">
+        <b-navbar-item href="/">
           Home
         </b-navbar-item>
-      </template> -->
+      </template>
     </b-navbar>
+    <hr>
     <nuxt />
   </div>
 </template>

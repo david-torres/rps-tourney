@@ -60,20 +60,38 @@
         </div>
         <div class="column is-6-desktop">
           <div class="content has-text-centered">
-            <b-button
-              v-if="matches.length === 0"
-              type="is-primary is-warning"
-              :disabled="participants.length < 2"
-              @click="startTournament"
-            >
-              Begin Tournament
-            </b-button>
-            <h4 v-else-if="tournament.startedAt && tournament.state === 'underway'" class="title">
-              Tournament in progress
-            </h4>
-            <h4 v-else-if="tournament.startedAt && tournament.state === 'awaiting_review'" class="title">
-              Tournament has ended
-            </h4>
+            <div v-if="!tournament.startedAt" id="begin-tournament">
+              <b-button
+                v-if="matches.length === 0"
+                type="is-primary is-warning"
+                :disabled="participants.length < 2"
+                @click="startTournament"
+              >
+                Begin Tournament
+              </b-button>
+            </div>
+            <div v-else-if="tournament.startedAt" id="tournament-progress">
+              <h4 v-if="tournament.state === 'underway'" class="title">
+                Tournament in progress
+              </h4>
+              <h4 v-else-if="tournament.state === 'awaiting_review'" class="title">
+                Tournament has ended. The winner is:
+              </h4>
+              <h1 v-if="tournament.state === 'awaiting_review'" class="has-text-centered">
+                <span>
+                  <b-icon
+                    pack="fas"
+                    size="1x"
+                    icon="crown"
+                    class="is-primary"
+                  >
+                    />
+                  </b-icon>
+                </span><br>
+                {{ winner }}
+              </h1>
+            </div>
+            <hr>
           </div>
           <div class="is-2">
             <b-menu>
@@ -107,7 +125,7 @@
                   {{ props.row.player2Name }}
                 </b-table-column>
                 <b-table-column label="Winner" class="has-text-centered">
-                  <span v-if="props.row.winnerName">
+                  <!-- <span v-if="props.row.winnerName">
                     <b-icon
                       pack="fas"
                       size="1x"
@@ -116,9 +134,9 @@
                     >
                       />
                     </b-icon>
-                  </span>
+                  </span> -->
                   <h5 v-if="props.row.winnerName" class="subtitle">
-                    {{ props.row.winnerName }}
+                    <strong>{{ props.row.winnerName }}</strong>
                   </h5>
                 </b-table-column>
               </template>
@@ -158,6 +176,29 @@ export default {
       matches: [],
       current_game: {},
       tournament: {}
+    }
+  },
+  computed: {
+    winner () {
+      let winner = ''
+      if (!this.tournament.startedAt || !this.tournament.state === 'awaiting_review') {
+        return winner
+      }
+
+      let round = 0
+      let winnerId = null
+      let winningMatch = null
+      this.matches.forEach((m) => {
+        if (m.round > round) {
+          round = m.round
+          winningMatch = m
+        }
+      })
+      winnerId = winningMatch.winnerId
+      winner = this.getNameById(winnerId)
+      console.log('computed winner', winner, winnerId, round, winningMatch)
+
+      return winner
     }
   },
   mounted () {
