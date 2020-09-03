@@ -68,14 +68,24 @@
             >
               Begin Tournament
             </b-button>
-            <h4 v-else class="title">
+            <h4 v-else-if="tournament.startedAt && tournament.state === 'underway'" class="title">
               Tournament in progress
+            </h4>
+            <h4 v-else-if="tournament.startedAt && tournament.state === 'awaiting_review'" class="title">
+              Tournament has ended
             </h4>
           </div>
           <div class="is-2">
             <b-menu>
               <b-menu-list label="Menu">
                 <b-menu-item icon="play-circle" label="Begin Matches" class="menu-icon is-medium" :disabled="matches.length === 0" @click="startMatches" />
+                <b-menu-item icon="times-circle" :active="false">
+                  <template slot="label" slot-scope="props">
+                    Danger Zone
+                    <b-icon class="is-pulled-right" :icon="props.expanded ? 'caret-down' : 'caret-left'" />
+                  </template>
+                  <b-menu-item icon="redo" label="Reset Tournament" @click="resetTournament" />
+                </b-menu-item>
               </b-menu-list>
             </b-menu>
           </div>
@@ -146,7 +156,8 @@ export default {
       game_active: false,
       participants: [],
       matches: [],
-      current_game: {}
+      current_game: {},
+      tournament: {}
     }
   },
   mounted () {
@@ -165,8 +176,8 @@ export default {
         console.log('successfully joined lobby')
         this.notify('Joined lobby!')
 
-        console.log('emit getParticipants')
-        this.socket.emit('getParticipants', { id })
+        console.log('emit getTournament')
+        this.socket.emit('getTournament', { id })
       } else if (data.status === 'failed') {
         console.log('failed joining lobby')
         this.alertFail(data)
@@ -181,11 +192,6 @@ export default {
       } else {
         this.alert(data.message)
       }
-    })
-
-    this.socket.on('checkedIn', (data) => {
-      console.log('receive checkedIn broadcast from server', data)
-      this.socket.emit('getParticipants', { id: this.id })
     })
 
     this.socket.on('joinGame', (data) => {
@@ -206,11 +212,50 @@ export default {
       console.log('receive startedGame broadcast from server')
     })
 
+    this.socket.on('getTournament', (data) => {
+      console.log('receive getTournament response from server', data)
+      if (data.status === 'success') {
+        this.tournament = data.tournament
+
+        if ('participants' in this.tournament) {
+          this.participants = Object.values(this.tournament.participants)
+        }
+        if ('matches' in this.tournament) {
+          this.matches = this.processMatches(Object.values(this.tournament.matches))
+        }
+      } else if (data.status === 'failed') {
+        this.alertFail(data)
+      }
+    })
+
     this.socket.on('startTournament', (data) => {
       console.log('receive startTournament broadcast from server', data)
       if (data.status === 'success') {
+        this.tournament = data.tournament
+
+        if ('participants' in this.tournament) {
+          this.participants = this.tournament.participants
+        }
+        if ('matches' in this.tournament) {
+          this.matches = this.processMatches(Object.values(this.tournament.matches))
+        }
+        this.$forceUpdate()
         this.notify('Tournament has begun!')
-        this.socket.emit('getMatches', { id: this.id })
+      } else if (data.status === 'failed') {
+        this.alertFail(data)
+      }
+    })
+
+    this.socket.on('resetTournament', (data) => {
+      console.log('receive resetTournament broadcast from server', data)
+      if (data.status === 'success') {
+        this.notify({
+          message: 'Tournament has been reset!',
+          type: 'is-warning',
+          duration: 5000
+        })
+
+        this.socket.emit('getTournament', { id: this.id })
       } else if (data.status === 'failed') {
         this.alertFail(data)
       }
@@ -219,14 +264,8 @@ export default {
     this.socket.on('getParticipants', (data) => {
       console.log('receive getParticipants response from server', data)
       if (data.status === 'success') {
-        data.participants.forEach((p) => {
-          console.log(p)
-        })
         this.participants = data.participants
         this.$forceUpdate()
-
-        console.log('emit getMatches', id)
-        this.socket.emit('getMatches', { id })
       } else if (data.status === 'failed') {
         this.alertFail(data)
       }
@@ -235,7 +274,7 @@ export default {
     this.socket.on('getMatches', (data) => {
       console.log('receive getMatches response from server', data)
       if (data.status === 'success') {
-        this.matches = this.processMatches(data.matches)
+        this.matches = this.processMatches(Object.values(data.matches))
         this.$forceUpdate()
       } else if (data.status === 'failed') {
         this.alertFail(data)
@@ -243,7 +282,7 @@ export default {
     })
 
     // app startup
-    this.joinLobby(id)
+    this.joinLobby()
   },
   methods: {
     checkIn () {
@@ -252,13 +291,17 @@ export default {
       console.log('emit checkIn', name)
       this.socket.emit('checkIn', { id, name })
     },
-    joinLobby (id) {
-      console.log('emit joinLobby', id)
-      this.socket.emit('joinLobby', { id })
+    joinLobby () {
+      console.log('emit joinLobby', this.id)
+      this.socket.emit('joinLobby', { id: this.id })
     },
     startTournament () {
       console.log('emit startTournament')
       this.socket.emit('startTournament', { id: this.id })
+    },
+    resetTournament () {
+      console.log('emit resetTournament')
+      this.socket.emit('resetTournament', { id: this.id })
     },
     startMatches () {
       console.log('emit startMatches')
@@ -288,7 +331,7 @@ export default {
           loserId: m.loserId
         })
       })
-      // console.log(matches)
+
       return matches
     },
     getNameById (id) {
@@ -325,6 +368,12 @@ export default {
 
 <style>
   .menu-icon .icon {
+    text-align: center;
+    vertical-align: middle;
+    margin-right: 10px;
+  }
+
+  li .icon {
     text-align: center;
     vertical-align: middle;
     margin-right: 10px;

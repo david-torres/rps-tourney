@@ -113,7 +113,6 @@ export default {
             duration: 5000
           })
         }
-        this.socket.emit('getMatches', { id: this.id })
         this.$parent.close()
       } else if (data.status === 'failed') {
         this.$buefy.dialog.alert('Match failed!')
