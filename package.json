@@ -7,6 +7,7 @@
     "build": "nuxt build",
     "start": "nuxt start",
     "generate": "nuxt generate",
+    "serve": "node server/server.js",
     "lint:js": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "lint": "npm run lint:js"
   },
@@ -15,10 +16,13 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.30",
     "@fortawesome/free-solid-svg-icons": "^5.14.0",
     "@fortawesome/vue-fontawesome": "^0.1.10",
+    "challonge": "^2.2.0",
     "nuxt": "^2.14.0",
     "nuxt-buefy": "^0.3.31",
     "nuxt-fontawesome": "^0.4.0",
     "nuxt-socket-io": "^1.1.11",
+    "shortid": "^2.2.15",
+    "socket.io": "^2.3.0",
     "vue-fontawesome": "0.0.2"
   },
   "devDependencies": {

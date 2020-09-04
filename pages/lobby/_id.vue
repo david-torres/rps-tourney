@@ -125,16 +125,6 @@
                   {{ props.row.player2Name }}
                 </b-table-column>
                 <b-table-column label="Winner" class="has-text-centered">
-                  <!-- <span v-if="props.row.winnerName">
-                    <b-icon
-                      pack="fas"
-                      size="1x"
-                      icon="crown"
-                      class="is-primary"
-                    >
-                      />
-                    </b-icon>
-                  </span> -->
                   <h5 v-if="props.row.winnerName" class="subtitle">
                     <strong>{{ props.row.winnerName }}</strong>
                   </h5>
