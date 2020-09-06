@@ -23,18 +23,19 @@ export default function (socket, io) {
       createTournament(client, socket, io)
     },
     getTournament (data) {
-      console.log('a client requested tournament ' + data.id)
-      getTournament(client, socket, io, data.id)
+      const id = data.id
+      console.log('a client requested tournament ' + id)
+      getTournament(client, socket, io, id)
     },
     startTournament (data) {
       const id = data.id
       console.log('a client requested to begin tournament ' + id)
-      startTournament(client, io, id)
+      startTournament(client, socket, io, id)
     },
     resetTournament (data) {
       const id = data.id
       console.log('a client requested to reset tournament ' + id)
-      resetTournament(client, io, id)
+      resetTournament(client, socket, io, id)
     },
     joinLobby (data) {
       const id = data.id
@@ -190,9 +191,15 @@ const broadcastTournament = (client, io, id) => {
   })
 }
 
-const startTournament = (client, io, id) => {
+const startTournament = (client, socket, io, id) => {
   const status = 'failed'
   const response = { id, status }
+
+  if (!allPlayersConnected(id)) {
+    response.message = 'You cannot start the tournament with disconnected players'
+    socket.emit('startTournament', response)
+    return
+  }
 
   // start tournament
   client.tournaments.start({
@@ -203,7 +210,8 @@ const startTournament = (client, io, id) => {
       // console.log(err, data)
       if (err) {
         response.message = err.errors[0]
-        io.sockets.in('lobby-' + id).emit('startTournament', response)
+        console.log('emit startTournament error, disconnected players')
+        socket.emit('startTournament', response)
         return
       }
 
@@ -225,7 +233,7 @@ const startTournament = (client, io, id) => {
   })
 }
 
-const resetTournament = (client, io, id) => {
+const resetTournament = (client, socket, io, id) => {
   const status = 'failed'
   const response = { id, status }
 
@@ -236,7 +244,7 @@ const resetTournament = (client, io, id) => {
       // console.log(err, data)
       if (err) {
         response.message = err.errors[0]
-        io.sockets.in('lobby-' + id).emit('resetTournament', response)
+        socket.emit('resetTournament', response)
         return
       }
 
@@ -433,6 +441,13 @@ const checkIn = (socket, io, id, name) => {
 const startMatches = (client, socket, io, id) => {
   const status = 'failed'
   const response = { id, status }
+
+  if (!allPlayersConnected(id)) {
+    response.message = 'You cannot start matches with disconnected players'
+    console.log('emit startMatches error, disconnected players')
+    socket.emit('startMatches', response)
+    return
+  }
 
   client.matches.index({
     id,
@@ -652,6 +667,16 @@ const updateUser = (user, socket) => {
   user.connected = (!!socket)
   user.socket = socket
   return user
+}
+
+const allPlayersConnected = (id) => {
+  let anyDisconnected = false
+  Object.values(store[id]).forEach((p) => {
+    if (p.connected === false) {
+      anyDisconnected = true
+    }
+  })
+  return !anyDisconnected
 }
 
 const getSocketById = (id, playerId) => {

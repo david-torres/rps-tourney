@@ -127,7 +127,7 @@
             <hr>
           </div>
 
-          <div>
+          <div v-if="matches.length > 0">
             <b-table :data="matches" :striped="true" :narrowed="true" :hoverable="true">
               <template slot-scope="props">
                 <b-table-column field="round" label="Round" width="20" class="has-text-centered">
@@ -311,6 +311,19 @@ export default {
         }
         this.$forceUpdate()
         this.notify('Tournament has begun!')
+      } else if (data.status === 'failed') {
+        this.alertFail(data)
+      }
+    })
+
+    this.socket.on('startMatches', (data) => {
+      console.log('receive startMatches response from server', data)
+      if (data.status === 'success') {
+        this.notify({
+          message: 'Matches sent!',
+          type: 'is-info',
+          duration: 1000
+        })
       } else if (data.status === 'failed') {
         this.alertFail(data)
       }
