@@ -11,7 +11,6 @@ shortid.characters(
 const client = challonge.createClient({
   apiKey: process.env.challonge_api_key || ''
 })
-console.log('in the socket server')
 
 export default function (socket, io) {
   return Object.freeze({
@@ -329,7 +328,7 @@ const broadcastParticipants = (client, io, id) => {
       response.status = 'success'
       response.participants = participants
 
-      console.log('broadcast getParticipants', io.sockets.adapter.rooms)
+      console.log('broadcast getParticipants')
       io.sockets.in('lobby-' + id).emit('getParticipants', response)
     }
   })

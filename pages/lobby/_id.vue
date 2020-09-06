@@ -198,7 +198,17 @@ export default {
     // socket listeners
     this.socket = this.$nuxtSocket({ persist: 'me' })
 
-    this.socket.on('connect', () => console.log('socket connected'))
+    this.socket.on('connect', () => {
+      console.log('socket connected')
+      const name = localStorage.getItem('name')
+      if (name) {
+        console.log('auto reconnect ' + name)
+        this.name = name
+        this.checkIn()
+        this.$forceUpdate()
+      }
+    })
+
     this.socket.on('disconnect', () => console.log('socket disconnected'))
 
     this.socket.on('joinLobby', (data) => {
@@ -220,6 +230,8 @@ export default {
       if (data.status === 'success') {
         this.notify('Checked in!')
         this.checked_in = true
+        console.log('checked-in name', this.name)
+        localStorage.setItem('name', this.name)
       } else {
         this.alert(data.message)
       }
