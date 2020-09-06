@@ -400,10 +400,17 @@ const checkIn = (socket, io, id, name) => {
     return
   }
 
+  // first player to check-in becomes VIP
+  let vip = false
+  if (Object.values(store[id]).length === 0) {
+    vip = true
+  }
+
   client.participants.create({
     id,
     participant: {
-      name
+      name,
+      misc: (vip ? 'vip' : '')
     },
     callback: (err, data) => {
       // console.log(err, data)
@@ -412,7 +419,7 @@ const checkIn = (socket, io, id, name) => {
         return
       }
 
-      const user = createUser(data.participant.id, name, socket)
+      const user = createUser(data.participant.id, name, socket, data.participant.misc)
       console.log('create participant', user.id)
       addToLobbyStore(id, user)
       socket.emit('checkIn', { status: 'success' })
@@ -599,7 +606,7 @@ const processParticipants = (id, participants) => {
     p = p.participant
     if (!(p.name in store[id])) {
       // add "inactive" players to lobby
-      const u = createUser(p.id, p.name, null)
+      const u = createUser(p.id, p.name, null, p.misc)
       addToLobbyStore(id, u)
     }
   })
@@ -630,12 +637,14 @@ const initStore = (id) => {
   }
 }
 
-const createUser = (id, name, socket) => {
+const createUser = (id, name, socket, misc) => {
+  const vip = (misc === 'vip')
   return {
     id,
     connected: (!!socket),
     name,
-    socket
+    socket,
+    vip
   }
 }
 

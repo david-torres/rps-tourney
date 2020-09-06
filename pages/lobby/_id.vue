@@ -37,7 +37,17 @@
               >
                 <template slot-scope="props">
                   <b-table-column field="name" label="Name">
-                    <span :class="props.row.name === name ? 'strong' : ''">
+                    <span v-if="props.row.vip">
+                      <b-icon
+                        pack="fas"
+                        size="is-small"
+                        :icon="'user-cog'"
+                        class="is-primary is-light"
+                      >
+                        />
+                      </b-icon>
+                    </span>
+                    <span :class="props.row.name === name ? 'has-text-weight-bold' : ''">
                       {{ props.row.name }}
                     </span>
                   </b-table-column>
@@ -45,7 +55,7 @@
                     <span>
                       <b-icon
                         pack="fas"
-                        size="1x"
+                        size="is-small"
                         :icon="props.row.connected ? 'check' : 'plug'"
                         class="is-primary"
                       >
@@ -60,28 +70,21 @@
         </div>
         <div class="column is-6-desktop">
           <div class="content has-text-centered">
-            <div v-if="!tournament.startedAt" id="begin-tournament">
-              <b-button
-                v-if="matches.length === 0"
-                type="is-primary is-warning"
-                :disabled="participants.length < 2"
-                @click="startTournament"
-              >
-                Begin Tournament
-              </b-button>
-            </div>
-            <div v-else-if="tournament.startedAt" id="tournament-progress">
-              <h4 v-if="tournament.state === 'underway'" class="title">
+            <div id="tournament-progress">
+              <h4 v-if="!tournament.startedAt && tournament.state === 'pending'" class="title">
+                Waiting for the VIP to start the tournament
+              </h4>
+              <h4 v-if="tournament.startedAt && tournament.state === 'underway'" class="title">
                 Tournament in progress
               </h4>
-              <h4 v-else-if="tournament.state === 'awaiting_review'" class="title">
+              <h4 v-else-if="tournament.startedAt && tournament.state === 'awaiting_review'" class="title">
                 Tournament has ended. The winner is:
               </h4>
-              <h1 v-if="tournament.state === 'awaiting_review'" class="has-text-centered">
+              <h1 v-if="tournament.startedAt && tournament.state === 'awaiting_review'" class="has-text-centered">
                 <span>
                   <b-icon
                     pack="fas"
-                    size="1x"
+                    size="is-large"
                     icon="crown"
                     class="is-primary"
                   >
@@ -93,11 +96,26 @@
             </div>
             <hr>
           </div>
-          <div class="is-2">
+          <div v-if="vip" class="is-2">
             <b-menu>
               <b-menu-list label="Menu">
-                <b-menu-item icon="play-circle" label="Begin Matches" class="menu-icon is-medium" :disabled="matches.length === 0" @click="startMatches" />
-                <b-menu-item icon="times-circle" :active="false">
+                <b-menu-item
+                  v-if="!tournament.startedAt"
+                  icon="play-circle"
+                  label="Begin Tournament"
+                  class="menu-icon is-medium"
+                  :disabled="participants.length < 2"
+                  @click="startTournament"
+                />
+                <b-menu-item
+                  v-if="tournament.startedAt"
+                  icon="play-circle"
+                  label="Begin Matches"
+                  class="menu-icon is-medium"
+                  :disabled="matches.length === 0"
+                  @click="startMatches"
+                />
+                <b-menu-item v-if="tournament.startedAt" icon="times-circle" :active="false">
                   <template slot="label" slot-scope="props">
                     Danger Zone
                     <b-icon class="is-pulled-right" :icon="props.expanded ? 'caret-down' : 'caret-left'" />
@@ -106,8 +124,8 @@
                 </b-menu-item>
               </b-menu-list>
             </b-menu>
+            <hr>
           </div>
-          <hr>
 
           <div>
             <b-table :data="matches" :striped="true" :narrowed="true" :hoverable="true">
@@ -189,6 +207,15 @@ export default {
       console.log('computed winner', winner, winnerId, round, winningMatch)
 
       return winner
+    },
+    vip () {
+      let vip = false
+      this.participants.forEach((p) => {
+        if (p.vip === true && p.name === this.name) {
+          vip = true
+        }
+      })
+      return vip
     }
   },
   mounted () {
@@ -414,6 +441,12 @@ export default {
     text-align: center;
     vertical-align: middle;
     margin-right: 10px;
+  }
+
+  span .icon {
+    text-align: center;
+    vertical-align: middle;
+    margin-right: 5px;
   }
 
   li .icon {
