@@ -51,7 +51,7 @@
                       {{ props.row.name }}
                     </span>
                   </b-table-column>
-                  <b-table-column label="Connected?" width="20" class="has-text-centered">
+                  <b-table-column width="20" class="has-text-centered">
                     <span>
                       <b-icon
                         pack="fas"
@@ -128,6 +128,10 @@
           </div>
 
           <div v-if="matches.length > 0">
+            <img
+              :src="liveImageUrl"
+              :alt="'Brackets for ' + id"
+            >
             <b-table :data="matches" :striped="true" :narrowed="true" :hoverable="true">
               <template slot-scope="props">
                 <b-table-column field="round" label="Round" width="20" class="has-text-centered">
@@ -216,6 +220,9 @@ export default {
         }
       })
       return vip
+    },
+    liveImageUrl () {
+      return this.tournament.liveImageUrl
     }
   },
   mounted () {
@@ -293,6 +300,7 @@ export default {
         if ('matches' in this.tournament) {
           this.matches = this.processMatches(Object.values(this.tournament.matches))
         }
+        this.$forceUpdate()
       } else if (data.status === 'failed') {
         this.alertFail(data)
       }
