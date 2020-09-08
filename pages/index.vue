@@ -27,14 +27,23 @@
         </div>
       </div>
     </div>
+    <b-modal
+      has-modal-card
+      :destroy-on-hide="false"
+      aria-role="dialog"
+      aria-modal
+    >
+      <NewTournament />
+    </b-modal>
   </section>
 </template>
 
 <script>
+import NewTournament from '../components/newTournament.vue'
 
 export default {
   name: 'Index',
-  components: {},
+  components: { NewTournament },
   mounted () {
     this.socket = this.$nuxtSocket({})
     this.socket.on('connect', () => console.log('socket connected'))
@@ -61,9 +70,13 @@ export default {
         duration: 3000
       })
 
-      const msg = `Join your
-      tournament lobby here: <h1 class="title is-2 is-spaced"><a href="/lobby/${id}">/lobby/${id}</a></h1>`
-      this.$buefy.dialog.alert(msg)
+      this.$buefy.modal.open({
+        parent: this,
+        component: NewTournament,
+        hasModalCard: true,
+        destroyOnHide: true,
+        props: { id }
+      })
     },
     newTournamentFail (data) {
       const msg = data.message
