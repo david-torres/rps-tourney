@@ -162,7 +162,7 @@
       v-model="game_active"
       has-modal-card
       trap-focus
-      can-cancel
+      :can-cancel="false"
       :destroy-on-hide="false"
       aria-role="dialog"
       aria-modal
@@ -232,16 +232,7 @@ export default {
     // socket listeners
     this.socket = this.$nuxtSocket({ persist: 'me' })
 
-    this.socket.on('connect', () => {
-      console.log('socket connected')
-      const name = localStorage.getItem('name')
-      if (name) {
-        console.log('auto reconnect ' + name)
-        this.name = name
-        this.checkIn()
-        this.$forceUpdate()
-      }
-    })
+    this.socket.on('connect', () => console.log('socket connected'))
 
     this.socket.on('disconnect', () => console.log('socket disconnected'))
 
@@ -287,6 +278,11 @@ export default {
 
     this.socket.on('startedGame', (data) => {
       console.log('receive startedGame broadcast from server')
+      if (data.status === 'success') {
+        this.notify('Starting game')
+      } else {
+        this.alert(data.message)
+      }
     })
 
     this.socket.on('getTournament', (data) => {
@@ -300,6 +296,7 @@ export default {
         if ('matches' in this.tournament) {
           this.matches = this.processMatches(Object.values(this.tournament.matches))
         }
+
         this.$forceUpdate()
       } else if (data.status === 'failed') {
         this.alertFail(data)
@@ -372,10 +369,33 @@ export default {
       }
     })
 
+    this.socket.on('droppedGame', (data) => {
+      console.log('receive droppedGame response from server', data)
+      if (data.status === 'success') {
+        this.notify({
+          message: data.player + ' has dropped from their game!',
+          type: 'is-warning',
+          duration: 5000
+        })
+      } else if (data.status === 'failed') {
+        this.alertFail(data)
+      }
+    })
+
     // app startup
     this.joinLobby()
+    setTimeout(this.autoLogin, 1000)
   },
   methods: {
+    autoLogin () {
+      const name = localStorage.getItem('name')
+      if (name) {
+        console.log('auto reconnect ' + name)
+        this.name = name
+        this.checkIn()
+        this.$forceUpdate()
+      }
+    },
     checkIn () {
       const id = this.id
       const name = this.name = this.name.trim()

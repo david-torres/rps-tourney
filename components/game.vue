@@ -5,11 +5,6 @@
         <p class="modal-card-title">
           You are battling: <strong>{{ opponent }}</strong>
         </p>
-        <button
-          type="button"
-          class="delete"
-          @click="$emit('close')"
-        />
       </header>
       <section class="modal-card-body">
         <h2 class="subtitle is-3 is-spaced">
@@ -97,7 +92,7 @@ export default {
     })
 
     this.socket.on('matchResults', (data) => {
-      this.spinner.close()
+      this.$parent.close()
       if (data.status === 'success') {
         const game = data.game
         if (game.winnerName === this.name) {
@@ -113,7 +108,6 @@ export default {
             duration: 5000
           })
         }
-        this.$parent.close()
       } else if (data.status === 'failed') {
         this.$buefy.dialog.alert('Match failed!')
       }
@@ -126,6 +120,16 @@ export default {
         message: 'Tie! Throw again',
         type: 'is-info',
         duration: 1000
+      })
+    })
+
+    this.socket.on('cancelGame', (data) => {
+      console.log('received cancelGame')
+      this.$parent.close()
+      this.$buefy.notification.open({
+        message: 'Your opponent dropped from the game.',
+        type: 'is-warning',
+        duration: 5000
       })
     })
 

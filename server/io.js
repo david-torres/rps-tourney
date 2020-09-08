@@ -4,7 +4,7 @@ const shortid = require('shortid')
 const store = {}
 
 shortid.characters(
-  '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?'
+  '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-'
 )
 
 // create an instance of the challonge client
@@ -16,7 +16,7 @@ export default function (socket, io) {
   return Object.freeze({
     disconnect () {
       console.log('a client disconnected')
-      disconnect(socket, io)
+      disconnect(client, socket, io)
     },
     newTournament () {
       console.log('a client requested a new tournament')
@@ -73,14 +73,33 @@ export default function (socket, io) {
   })
 }
 
-const getId = () => shortid.generate().replace('?', '_')
+const getId = () => shortid.generate().replace('-', '_')
 
-const disconnect = (socket, io) => {
+const disconnect = (client, socket, io) => {
+  socket.removeAllListeners()
+
+  // disconnect game
   for (const id of Object.keys(store)) {
-    for (const name of Object.keys(store[id])) {
-      const u = store[id][name]
+    const data = store[id]
+    if ('actions' in data) {
+      // unmark any active games
+      const playerId = getIdBySocket(data.tid, socket.id)
+      if (data.player1Id === playerId || data.player2Id === playerId) {
+        console.log('disconnect ' + playerId + ' from game')
+        unmarkMatch(client, io, data.tid, id, playerId)
+      }
+    }
+  }
+
+  // disconnect lobby
+  for (const id of Object.keys(store)) {
+    const data = store[id]
+    const name = getNameBySocket(id, socket.id)
+    if (name in data) {
+      const u = data[name]
       if (u.socket) {
         if (u.socket.id === socket.id) {
+          console.log('disconnect ' + name + ' from lobby', id)
           updateUser(u, null)
         }
       }
@@ -96,11 +115,11 @@ const createTournament = (client, socket, io) => {
   // create a tournament
   client.tournaments.create({
     tournament: {
-      name: 'Rock Paper Scissors Spock Lizard Tournament (' + id + ')',
+      name: 'RPS Tourney (' + id + ')',
       url: id,
       tournamentType: 'single elimination',
       description:
-        'Rock Paper Scissors Spock Lizard Tournament. Single Elimination.',
+        'RPS Tourney (' + id + '). Single Elimination.',
       openSignup: false,
       private: true
     },
@@ -351,7 +370,7 @@ const joinLobby = (socket, io, id) => {
   socket.emit('joinLobby', response)
 }
 
-const startGame = (io, id, match) => {
+const startGame = (client, io, id, match) => {
   const game = getGame(id, match)
   const player1Id = game.player1.id
   const player2Id = game.player2.id
@@ -371,11 +390,9 @@ const startGame = (io, id, match) => {
     }
   }
 
-  player1Socket.emit('joinGame', game)
-  player2Socket.emit('joinGame', game)
-
   initStore(game.id)
   store[game.id] = {
+    tid: id,
     actions: {
       [player1Id]: null,
       [player2Id]: null
@@ -384,9 +401,32 @@ const startGame = (io, id, match) => {
     player2Id
   }
 
-  // Send this event to everyone in the game.
-  console.log('broadcast startedGame to all clients connected to ' + game.id)
-  io.sockets.in(gameRoomId).emit('startedGame', { message: 'Started game ' + game.id })
+  const status = 'failed'
+  const response = { id, status }
+
+  client.client.makeRequest({
+    method: 'POST',
+    path: '/' + id + '/matches/' + game.id + '/mark_as_underway',
+    callback: (err, data) => {
+      // console.log(err, data)
+      if (err) {
+        console.log('mark request error', err)
+        response.message = err.errors[0]
+        io.sockets.in(gameRoomId).emit('startedGame', response)
+        return
+      }
+
+      response.status = 'success'
+      response.message = 'Started game ' + game.id
+
+      player1Socket.emit('joinGame', game)
+      player2Socket.emit('joinGame', game)
+
+      // Send this event to everyone in the game.
+      console.log('broadcast startedGame to all clients connected to ' + game.id)
+      io.sockets.in(gameRoomId).emit('startedGame', response)
+    }
+  })
 }
 
 const checkIn = (socket, io, id, name) => {
@@ -455,21 +495,25 @@ const startMatches = (client, socket, io, id) => {
       // console.log(err, data)
       if (err) {
         response.message = err.errors[0]
+        console.log('emit startMatches error', err.errors[0])
         socket.emit('startMatches', response)
         return
       }
 
       const matches = Object.values(data)
+      let matchCount = 0
       matches.forEach((m) => {
         m = m.match
-        if (m.state === 'open') {
+        if (m.state === 'open' && !m.underwayAt) {
           console.log('start game ' + m.id)
-          startGame(io, id, m)
+          startGame(client, io, id, m)
+          matchCount++
         }
       })
 
       response.status = 'success'
-      console.log('startMatches response')
+      response.count = matchCount
+      console.log('startMatches response', matchCount)
       socket.emit('startMatches', response)
     }
   })
@@ -504,7 +548,7 @@ const resolveMatch = (client, socket, io, id, gameId) => {
 
   if (player1Move === 'rock') {
     if (player2Move === 'rock') {
-      resolveTie(io, id, gameId, player1Id, player2Id)
+      resolveTie(client, io, id, gameId, player1Id, player2Id)
       return
     }
     if (player2Move === 'scissors' || player2Move === 'lizard') {
@@ -514,7 +558,7 @@ const resolveMatch = (client, socket, io, id, gameId) => {
     }
   } else if (player1Move === 'paper') {
     if (player2Move === 'paper') {
-      resolveTie(io, id, gameId, player1Id, player2Id)
+      resolveTie(client, io, id, gameId, player1Id, player2Id)
       return
     }
     if (player2Move === 'rock' || player2Move === 'spock') {
@@ -524,7 +568,7 @@ const resolveMatch = (client, socket, io, id, gameId) => {
     }
   } else if (player1Move === 'scissors') {
     if (player2Move === 'scissors') {
-      resolveTie(io, id, gameId, player1Id, player2Id)
+      resolveTie(client, io, id, gameId, player1Id, player2Id)
       return
     }
     if (player2Move === 'paper' || player2Move === 'lizard') {
@@ -534,7 +578,7 @@ const resolveMatch = (client, socket, io, id, gameId) => {
     }
   } else if (player1Move === 'spock') {
     if (player2Move === 'spock') {
-      resolveTie(io, id, gameId, player1Id, player2Id)
+      resolveTie(client, io, id, gameId, player1Id, player2Id)
       return
     }
     if (player2Move === 'scissors' || player2Move === 'rock') {
@@ -544,7 +588,7 @@ const resolveMatch = (client, socket, io, id, gameId) => {
     }
   } else if (player1Move === 'lizard') {
     if (player2Move === 'lizard') {
-      resolveTie(io, id, gameId, player1Id, player2Id)
+      resolveTie(client, io, id, gameId, player1Id, player2Id)
       return
     }
     if (player2Move === 'spock' || player2Move === 'paper') {
@@ -581,14 +625,26 @@ const matchResults = (client, io, id, gameId, winnerId, scores) => {
         winnerName: getNameById(id, winnerId)
       }
 
+      // post match results to game room
       console.log('broadcast matchResults to all clients connected to ' + gameId)
       io.sockets.in('game-' + gameId).emit('matchResults', response)
+
+      // leave the game room
+      io.in('game-' + gameId).clients((error, socketIds) => {
+        if (error) { return }
+        socketIds.forEach(socketId => io.sockets.sockets[socketId].leave('game-' + gameId))
+      })
+
+      // clear the game cache
+      delete store[gameId]
+
+      // send tournament broadcast
       broadcastTournament(client, io, id)
     }
   })
 }
 
-const resolveTie = (io, id, gameId, player1Id, player2Id) => {
+const resolveTie = (client, io, id, gameId, player1Id, player2Id) => {
   const match = {
     id: gameId,
     player1Id,
@@ -599,7 +655,58 @@ const resolveTie = (io, id, gameId, player1Id, player2Id) => {
 
   console.log('broadcast matchTie to all clients connected to ' + gameId)
   io.sockets.in('game-' + gameId).emit('matchTie')
-  startGame(io, id, match)
+  startGame(client, io, id, match)
+}
+
+const unmarkMatch = (client, io, id, gameId, droppedPlayerId) => {
+  const status = 'failed'
+  const response = { id, status }
+
+  const droppedPlayerName = getNameById(id, droppedPlayerId)
+
+  const vip = getVIP(id)
+  let vipConnected = false
+  if (vip.connected && vip.id !== droppedPlayerId) {
+    vipConnected = true
+  }
+  console.log('umark match', id, gameId, droppedPlayerId)
+  console.log('path', '/' + id + '/matches/' + gameId + '/unmark_as_underway')
+  client.client.makeRequest({
+    method: 'POST',
+    path: '/' + id + '/matches/' + gameId + '/unmark_as_underway',
+    callback: (err, data) => {
+      // console.log(err, data)
+      if (err) {
+        console.log('unmark request error', err)
+        response.message = err.errors[0]
+        if (vipConnected) {
+          vip.socket.emit('droppedGame', response)
+        }
+        return
+      }
+
+      response.status = 'success'
+      response.message = 'Unmarked game ' + gameId
+      response.player = droppedPlayerName
+
+      // send this event to the opponent
+      const match = data.match
+      let opponentId = null
+      if (match.player1Id === droppedPlayerId) {
+        opponentId = match.player2Id
+      } else {
+        opponentId = match.player1Id
+      }
+      const opponentSocket = getSocketById(id, opponentId)
+      opponentSocket.emit('cancelGame', response)
+
+      // send this event to the VIP of the tournament
+      if (vipConnected) {
+        console.log('emit droppedGame to VIP of ' + id)
+        vip.socket.emit('droppedGame', response)
+      }
+    }
+  })
 }
 
 const getGame = (id, match) => {
@@ -707,4 +814,24 @@ const getIdBySocket = (id, socketId) => {
     }
   })
   return uid
+}
+
+const getNameBySocket = (id, socketId) => {
+  let name = null
+  Object.values(store[id]).forEach((u) => {
+    if (u.socket && u.socket.id === socketId) {
+      name = u.name
+    }
+  })
+  return name
+}
+
+const getVIP = (id) => {
+  let vip = null
+  Object.values(store[id]).forEach((u) => {
+    if (u.vip) {
+      vip = u
+    }
+  })
+  return vip
 }
