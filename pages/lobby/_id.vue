@@ -86,7 +86,7 @@
                     pack="fas"
                     size="is-large"
                     icon="crown"
-                    class="is-primary"
+                    type="is-primary"
                   >
                     />
                   </b-icon>
