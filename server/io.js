@@ -101,6 +101,9 @@ const disconnect = (client, socket, io) => {
         if (u.socket.id === socket.id) {
           console.log('disconnect ' + name + ' from lobby', id)
           updateUser(u, null)
+
+          // broadcast updated participant list to clients
+          broadcastParticipants(client, io, id)
         }
       }
     }
