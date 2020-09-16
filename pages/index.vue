@@ -10,8 +10,10 @@
             </h1>
             <h2 class="subtitle is-4">
               Rock Paper Scissors Spock Lizard?! Yep, it's an "expansion pack"
-              for the classic game that was invented by Sam Kass. Learn more
-              about how to play.
+              for the classic game that was <a class="is-link" href="http://www.samkass.com/theories/RPSSL.html">invented by Sam Kass</a>.
+              <br><n-link type="is-link" to="/learn">
+                Learn more about how to play and use this app
+              </n-link>.
               <br>
               <br>
               <div class="has-text-centered">

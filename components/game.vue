@@ -119,7 +119,7 @@ export default {
       this.$buefy.notification.open({
         message: 'Tie! Throw again',
         type: 'is-info',
-        duration: 1000
+        duration: 5000
       })
     })
 

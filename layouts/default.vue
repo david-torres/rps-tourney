@@ -12,6 +12,9 @@
         <b-navbar-item href="/">
           Home
         </b-navbar-item>
+        <b-navbar-item href="/learn">
+          Learn
+        </b-navbar-item>
       </template>
     </b-navbar>
     <hr>
