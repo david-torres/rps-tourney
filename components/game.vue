@@ -11,31 +11,47 @@
           Choose your weapon!
         </h2>
         <b-notification ref="weapon" :closable="false">
-          <b-tooltip label="Rock">
-            <b-button type="is-primary is-light is-large" @click="throwWeapon('rock')">
-              <img src="/img/rock.png" height="50" width="50" alt="Rock" class="game-icon">
-            </b-button>
-          </b-tooltip>
-          <b-tooltip label="Paper">
-            <b-button type="is-primary is-light is-large" @click="throwWeapon('paper')">
-              <img src="/img/folded-paper.png" height="50" width="50" alt="Paper" class="game-icon">
-            </b-button>
-          </b-tooltip>
-          <b-tooltip label="Scissors">
-            <b-button type="is-primary is-light is-large" @click="throwWeapon('scissors')">
-              <img src="/img/scissors.png" height="50" width="50" alt="Scissors" class="game-icon">
-            </b-button>
-          </b-tooltip>
-          <b-tooltip label="Spock">
-            <b-button type="is-primary is-light is-large" @click="throwWeapon('spock')">
-              <img src="/img/palm-vulcan.png" height="50" width="50" alt="Spock" class="game-icon">
-            </b-button>
-          </b-tooltip>
-          <b-tooltip label="Lizard">
-            <b-button type="is-primary is-light is-large" @click="throwWeapon('lizard')">
-              <img src="/img/gecko.png" height="50" width="50" alt="Lizard" class="game-icon">
-            </b-button>
-          </b-tooltip>
+          <div class="columns has-text-centered">
+            <div class="column">
+              <b-tooltip label="Rock">
+                <b-button type="is-primary is-light is-large is-fullwidth" @click="throwWeapon('rock')">
+                  <img src="/img/rock.png" height="50" width="50" alt="Rock" class="game-icon">
+                </b-button>
+              </b-tooltip>
+            </div>
+
+            <div class="column">
+              <b-tooltip label="Paper">
+                <b-button type="is-primary is-light is-large" @click="throwWeapon('paper')">
+                  <img src="/img/folded-paper.png" height="50" width="50" alt="Paper" class="game-icon">
+                </b-button>
+              </b-tooltip>
+            </div>
+
+            <div class="column">
+              <b-tooltip label="Scissors">
+                <b-button type="is-primary is-light is-large" @click="throwWeapon('scissors')">
+                  <img src="/img/scissors.png" height="50" width="50" alt="Scissors" class="game-icon">
+                </b-button>
+              </b-tooltip>
+            </div>
+
+            <div class="column">
+              <b-tooltip label="Spock">
+                <b-button type="is-primary is-light is-large" @click="throwWeapon('spock')">
+                  <img src="/img/palm-vulcan.png" height="50" width="50" alt="Spock" class="game-icon">
+                </b-button>
+              </b-tooltip>
+            </div>
+
+            <div class="column">
+              <b-tooltip label="Lizard">
+                <b-button type="is-primary is-light is-large" @click="throwWeapon('lizard')">
+                  <img src="/img/gecko.png" height="50" width="50" alt="Lizard" class="game-icon">
+                </b-button>
+              </b-tooltip>
+            </div>
+          </div>
         </b-notification>
       </section>
       <footer class="modal-card-foot" />

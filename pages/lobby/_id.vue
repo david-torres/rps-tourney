@@ -13,7 +13,7 @@
             <div v-if="!checked_in" id="check-in">
               <p>Register a name to check-in to the tournament.</p>
               <b-field label="Name">
-                <b-input v-model="name" maxlength="20" size="is-medium" />
+                <b-input v-model="name" maxlength="32" size="is-medium" />
               </b-field>
               <div class="has-text-right">
                 <b-button
@@ -29,6 +29,15 @@
               <h3 class="title">
                 Participants
               </h3>
+              <div v-if="vip">
+                <b-button inverted outlined type="is-light is-text" @click="toggleQR">
+                  Show QR Code
+                </b-button>
+                <br><br>
+                <div v-show="qr_toggle" class="has-text-centered">
+                  <qrcode :value="url" :options="{ width: 200 }" />
+                </div>
+              </div>
               <b-table
                 :striped="true"
                 :narrowed="true"
@@ -187,7 +196,9 @@ export default {
       participants: [],
       matches: [],
       current_game: {},
-      tournament: {}
+      tournament: {},
+      qr_toggle: false,
+      url: ''
     }
   },
   computed: {
@@ -227,6 +238,7 @@ export default {
   },
   mounted () {
     const id = this.$route.params.id
+    this.url = window.location.href
     this.id = id
 
     // socket listeners
@@ -444,6 +456,9 @@ export default {
       })
 
       return matches
+    },
+    toggleQR () {
+      this.qr_toggle = !this.qr_toggle
     },
     getNameById (id) {
       let name = ''
