@@ -1,32 +1,40 @@
 <template>
-  <section class="hero is-medium is-primary">
-    <div class="hero-body">
-      <div class="container">
-        <div class="columns">
-          <div class="column is-8-desktop is-offset-2-desktop">
-            <h1 class="title is-2 is-spaced">
-              Welcome to Rock Paper Scissors Spock Lizard Online Tournament
-              Organizer!
-            </h1>
-            <h2 class="subtitle is-4">
-              Rock Paper Scissors Spock Lizard?! Yep, it's an "expansion pack"
-              for the classic game that was <a class="is-link" href="http://www.samkass.com/theories/RPSSL.html">invented by Sam Kass</a>.
-              <br><n-link type="is-link" to="/learn">
-                Learn more about how to play and use this app
-              </n-link>.
-              <br>
-              <br>
-              <div class="has-text-centered">
-                <b-button
-                  class="is-primary is-inverted"
-                  @click="newTournament"
-                >
-                  Create new tournament
-                </b-button>
-              </div>
-            </h2>
+  <section>
+    <div class="hero is-medium is-primary">
+      <div class="hero-body">
+        <div class="container">
+          <div class="columns">
+            <div class="column is-8-desktop is-offset-2-desktop">
+              <h1 class="title is-2 is-spaced">
+                Welcome to Rock Paper Scissors Spock Lizard Online Tournament
+                Organizer!
+              </h1>
+              <h2 class="subtitle is-4">
+                Rock Paper Scissors Spock Lizard?! Yep, it's an "expansion pack"
+                for the classic game that was <a class="is-link" href="http://www.samkass.com/theories/RPSSL.html">invented by Sam Kass</a>.
+                <br><br><n-link type="is-link" to="/learn">
+                  Learn more about how to play and use this app
+                </n-link>.
+                <br>
+                <br>
+                <br>
+                <div class="has-text-centered">
+                  <b-button
+                    class="is-primary is-inverted"
+                    @click="newTournament"
+                  >
+                    Create new tournament
+                  </b-button>
+                </div>
+              </h2>
+            </div>
           </div>
         </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="content">
+        <br>
       </div>
     </div>
     <b-modal
