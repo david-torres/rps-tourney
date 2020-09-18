@@ -762,6 +762,25 @@ const initStore = (id) => {
   }
 }
 
+const cleanStore = () => {
+  Object.keys(store).forEach((key) => {
+    const tournament = store[key]
+
+    let disconnectedCount = 0
+    Object.keys(tournament).forEach((name) => {
+      const player = tournament[name]
+      if (player.connected === false) {
+        disconnectedCount += 1
+      }
+    })
+
+    if (disconnectedCount === Object.keys(tournament).length) {
+      console.log('clearing store ' + key)
+      delete store[key]
+    }
+  })
+}
+
 const createUser = (id, name, socket, misc) => {
   const vip = (misc === 'vip')
   return {
@@ -838,3 +857,7 @@ const getVIP = (id) => {
   })
   return vip
 }
+
+// long-running processes
+setInterval(cleanStore, 600000)
+// TODO: cleanup old tournaments
