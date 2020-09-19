@@ -138,7 +138,7 @@
 
           <div v-if="matches.length > 0">
             <img
-              :src="liveImageUrl"
+              :src="live_image"
               :alt="'Brackets for ' + id"
             >
             <b-table :data="matches" :striped="true" :narrowed="true" :hoverable="true">
@@ -198,7 +198,8 @@ export default {
       current_game: {},
       tournament: {},
       qr_toggle: false,
-      url: ''
+      url: '',
+      live_image: ''
     }
   },
   computed: {
@@ -231,9 +232,6 @@ export default {
         }
       })
       return vip
-    },
-    liveImageUrl () {
-      return this.tournament.liveImageUrl
     }
   },
   mounted () {
@@ -308,6 +306,8 @@ export default {
         if ('matches' in this.tournament) {
           this.matches = this.processMatches(Object.values(this.tournament.matches))
         }
+
+        this.updateLiveImage()
 
         this.$forceUpdate()
       } else if (data.status === 'failed') {
@@ -459,6 +459,9 @@ export default {
     },
     toggleQR () {
       this.qr_toggle = !this.qr_toggle
+    },
+    updateLiveImage () {
+      this.live_image = this.tournament.liveImageUrl + '?' + (new Date().getTime())
     },
     getNameById (id) {
       let name = ''
