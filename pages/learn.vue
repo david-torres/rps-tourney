@@ -37,7 +37,11 @@
             /> with your participants.
           </li>
           <li class="list-item">
-            When there are at least two participants the VIP can click "Begin Tournament"
+            When there are at least two participants the VIP can click "Begin Tournament" <b-icon
+              pack="fas"
+              icon="play-circle"
+              size="is-small"
+            />
             to generate matches. No more participants can be added once the tournament has begun.
           </li>
           <li class="list-item">

@@ -86,6 +86,9 @@
                 <div v-show="qr_toggle" class="has-text-centered">
                   <qrcode :value="url" :options="{ width: 200 }" />
                 </div>
+                <b-button inverted outlined type="is-light is-text" @click="showUrl">
+                  Show URL
+                </b-button>
               </div>
             </div>
           </div>
@@ -495,6 +498,13 @@ export default {
     },
     toggleQR () {
       this.qr_toggle = !this.qr_toggle
+    },
+    showUrl () {
+      this.$buefy.dialog.alert({
+        title: 'Tournament URL',
+        message: '<h1 class="title"><a href="' + this.url + '">' + this.url + '</a></h1>',
+        confirmText: 'Got it!'
+      })
     },
     updateLiveImage () {
       this.live_image = this.tournament.liveImageUrl + '?' + (new Date().getTime())
