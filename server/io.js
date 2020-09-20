@@ -48,6 +48,12 @@ export default function (socket, io) {
       console.log('a client requested to check-in as ' + name + ' to lobby ' + id)
       checkIn(socket, io, id, name)
     },
+    dropPlayer (data) {
+      const id = data.id
+      const playerId = data.playerId
+      console.log('a client requested to drop player ' + playerId + ' from lobby ' + id)
+      dropPlayer(client, socket, io, id, playerId)
+    },
     getParticipants (data) {
       const id = data.id
       console.log('a client requested participants for lobby ' + id)
@@ -476,6 +482,33 @@ const checkIn = (socket, io, id, name) => {
       socket.emit('checkIn', { status: 'success' })
 
       // Broadcast new participants to everyone in the lobby.
+      broadcastParticipants(client, io, id)
+    }
+  })
+}
+
+const dropPlayer = (client, socket, io, id, playerId) => {
+  client.participants.destroy({
+    id,
+    participantId: playerId,
+    callback: (err, data) => {
+      // console.log(err, data)
+      if (err) {
+        socket.emit('dropPlayer', { status: 'failed', message: err.errors[0] })
+        return
+      }
+
+      const name = getNameById(id, playerId)
+      const user = store[id][name]
+
+      if (user && user.connected) {
+        io.sockets.sockets[user.socket.id].disconnect()
+      }
+
+      delete store[id][name]
+      socket.emit('dropPlayer', { status: 'success', player: name })
+
+      // Broadcast updated participants to everyone in the lobby.
       broadcastParticipants(client, io, id)
     }
   })

@@ -56,8 +56,17 @@
                         />
                       </b-icon>
                     </span>
-                    <span :class="props.row.name === name ? 'has-text-weight-bold' : ''">
-                      {{ props.row.name }}
+                    <span
+                      :class="props.row.name === name ? 'has-text-weight-bold' : ''"
+                      @mouseover="if (vip) { hover_player = props.row.name }"
+                      @mouseleave="if (vip) { hover_player = false }"
+                    >
+                      <span v-if="hover_player === props.row.name && vip && vip !== props.row.name">
+                        <b-button inverted outlined type="is-small is-light is-text" @click="dropPlayer(props.row.id, props.row.name)">
+                          Drop {{ props.row.name }}?
+                        </b-button>
+                      </span>
+                      <span v-else>{{ props.row.name }}</span>
                     </span>
                   </b-table-column>
                   <b-table-column width="20" class="has-text-centered">
@@ -199,7 +208,8 @@ export default {
       tournament: {},
       qr_toggle: false,
       url: '',
-      live_image: ''
+      live_image: '',
+      hover_player: false
     }
   },
   computed: {
@@ -228,7 +238,7 @@ export default {
       let vip = false
       this.participants.forEach((p) => {
         if (p.vip === true && p.name === this.name) {
-          vip = true
+          vip = p.name
         }
       })
       return vip
@@ -394,6 +404,19 @@ export default {
       }
     })
 
+    this.socket.on('dropPlayer', (data) => {
+      console.log('receive dropPlayer response from server', data)
+      if (data.status === 'success') {
+        this.notify({
+          message: data.player + ' has been dropped from the tournament!',
+          type: 'is-warning',
+          duration: 5000
+        })
+      } else if (data.status === 'failed') {
+        this.alertFail(data)
+      }
+    })
+
     // app startup
     this.joinLobby()
     setTimeout(this.autoLogin, 1000)
@@ -413,6 +436,15 @@ export default {
       const name = this.name = this.name.trim()
       console.log('emit checkIn', name)
       this.socket.emit('checkIn', { id, name })
+    },
+    dropPlayer (playerId, name) {
+      this.$buefy.dialog.confirm({
+        message: 'Drop ' + name + ' from the tournament?',
+        onConfirm: () => {
+          console.log('Drop player ' + playerId)
+          this.socket.emit('dropPlayer', { id: this.id, playerId })
+        }
+      })
     },
     joinLobby () {
       console.log('emit joinLobby', this.id)
