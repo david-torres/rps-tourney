@@ -9,14 +9,12 @@
                 How to play
               </h1>
               <h2 class="subtitle is-4">
-                <strong>Scissors</strong> cuts <strong>Paper</strong> covers <strong>Rock</strong> crushes <strong>Lizard</strong> poisons <strong>Spock</strong> smashes <strong>Scissors</strong> decapitates <strong>Lizard</strong> eats <strong>Paper</strong> disproves <strong>Spock</strong> vaporizes <strong>Rock</strong> crushes <strong>Scissors</strong>.
+                <strong>Scissors</strong> cuts <strong>Paper</strong> covers <strong>Rock</strong> crushes <strong>Lizard</strong> poisons <strong>Spock</strong> smashes <strong>Scissors</strong> decapitates <strong>Lizard</strong> eats <strong>Paper</strong> disproves <strong>Spock</strong> vaporizes <strong>Rock</strong> crushes <strong>Scissors</strong>
               </h2>
             </div>
-            </h2>
           </div>
         </div>
       </div>
-    </div>
     </div>
     <div class="section">
       <div class="content">

@@ -15,6 +15,9 @@
         <b-navbar-item href="/learn">
           Learn
         </b-navbar-item>
+        <b-navbar-item href="/about">
+          About
+        </b-navbar-item>
       </template>
     </b-navbar>
     <hr>
