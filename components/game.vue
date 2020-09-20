@@ -14,7 +14,7 @@
           <div class="columns has-text-centered">
             <div class="column">
               <b-tooltip label="Rock">
-                <b-button type="is-primary is-light is-large is-fullwidth" @click="throwWeapon('rock')">
+                <b-button type="is-primary is-light is-large" @click="throwWeapon('rock')">
                   <img src="/img/rock.png" height="50" width="50" alt="Rock" class="game-icon">
                 </b-button>
               </b-tooltip>
