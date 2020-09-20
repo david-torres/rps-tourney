@@ -4,10 +4,13 @@
       <div class="columns">
         <div class="column is-3-desktop">
           <div class="content">
-            <h4 v-if="checked_in" class="subtitle">
-              Checked-in as: {{ name }}
-            </h4>
-            <h6 v-else class="subtitle">
+            <b-message v-if="vip" type="is-info">
+              You are the VIP
+            </b-message>
+            <b-message v-if="winner === name" type="is-success">
+              You are the Champion!
+            </b-message>
+            <h6 v-if="!checked_in" class="subtitle">
               You are <strong>NOT</strong> checked-in!
             </h6>
             <div v-if="!checked_in" id="check-in">
@@ -29,15 +32,6 @@
               <h3 class="title">
                 Participants
               </h3>
-              <div v-if="vip">
-                <b-button inverted outlined type="is-light is-text" @click="toggleQR">
-                  Show QR Code
-                </b-button>
-                <br><br>
-                <div v-show="qr_toggle" class="has-text-centered">
-                  <qrcode :value="url" :options="{ width: 200 }" />
-                </div>
-              </div>
               <b-table
                 :striped="true"
                 :narrowed="true"
@@ -50,7 +44,7 @@
                       <b-icon
                         pack="fas"
                         size="is-small"
-                        :icon="'user-cog'"
+                        icon="user-cog"
                         class="is-primary is-light"
                       >
                         />
@@ -83,6 +77,16 @@
                   </b-table-column>
                 </template>
               </b-table>
+              <br>
+              <div v-if="vip">
+                <b-button inverted outlined type="is-light is-text" @click="toggleQR">
+                  Show QR Code
+                </b-button>
+                <br><br>
+                <div v-show="qr_toggle" class="has-text-centered">
+                  <qrcode :value="url" :options="{ width: 200 }" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -133,7 +137,7 @@
                   :disabled="matches.length === 0"
                   @click="startMatches"
                 />
-                <b-menu-item v-if="tournament.startedAt" icon="times-circle" :active="false">
+                <b-menu-item v-if="tournament.startedAt" icon="exclamation-triangle" :active="false">
                   <template slot="label" slot-scope="props">
                     Danger Zone
                     <b-icon class="is-pulled-right" :icon="props.expanded ? 'caret-down' : 'caret-left'" />
