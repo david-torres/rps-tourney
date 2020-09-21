@@ -153,10 +153,19 @@
           </div>
 
           <div v-if="matches.length > 0">
-            <img
-              :src="live_image"
-              :alt="'Brackets for ' + id"
-            >
+            <div class="media">
+              <figure class="media-left">
+                <p class="image is-64x64" />
+              </figure>
+              <div class="media-content">
+                <div class="content">
+                  <img
+                    :src="live_image"
+                    :alt="'Brackets for ' + id"
+                  >
+                </div>
+              </div>
+            </div>
             <b-table :data="matches" :striped="true" :narrowed="true" :hoverable="true">
               <template slot-scope="props">
                 <b-table-column field="round" label="Round" width="20" class="has-text-centered">
