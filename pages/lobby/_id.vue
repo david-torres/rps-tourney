@@ -4,12 +4,14 @@
       <div class="columns">
         <div class="column is-3-desktop">
           <div class="content">
-            <b-message v-if="vip" type="is-info">
-              You are the VIP
-            </b-message>
-            <b-message v-if="winner === name" type="is-success">
-              You are the Champion!
-            </b-message>
+            <span v-if="checked_in">
+              <b-message v-if="vip" type="is-info">
+                You are the VIP
+              </b-message>
+              <b-message v-if="winner === name" type="is-success">
+                You are the Champion!
+              </b-message>
+            </span>
             <h6 v-if="!checked_in" class="subtitle">
               You are <strong>NOT</strong> checked-in!
             </h6>
