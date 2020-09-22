@@ -80,7 +80,7 @@
                 </template>
               </b-table>
               <br>
-              <div v-if="vip">
+              <div v-if="checked_in && vip">
                 <b-button inverted outlined type="is-light is-text" @click="showInfo">
                   Show Joining Info
                 </b-button>
