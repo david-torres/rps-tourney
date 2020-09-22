@@ -8,7 +8,7 @@
               <b-message v-if="vip" type="is-info">
                 You are the VIP
               </b-message>
-              <b-message v-if="winner === name" type="is-success">
+              <b-message v-if="tournament.startedAt && tournament.state === 'awaiting_review' && winner === name" type="is-success">
                 You are the Champion!
               </b-message>
             </span>
@@ -81,15 +81,8 @@
               </b-table>
               <br>
               <div v-if="vip">
-                <b-button inverted outlined type="is-light is-text" @click="toggleQR">
-                  Show QR Code
-                </b-button>
-                <br><br>
-                <div v-show="qr_toggle" class="has-text-centered">
-                  <qrcode :value="url" :options="{ width: 200 }" />
-                </div>
-                <b-button inverted outlined type="is-light is-text" @click="showUrl">
-                  Show URL
+                <b-button inverted outlined type="is-light is-text" @click="showInfo">
+                  Show Joining Info
                 </b-button>
               </div>
             </div>
@@ -194,26 +187,22 @@
         <div class="column is-2-desktop" />
       </div>
     </div>
-    <b-modal
-      v-model="game_active"
-      has-modal-card
-      trap-focus
-      :can-cancel="false"
-      :destroy-on-hide="false"
-      aria-role="dialog"
-      aria-modal
-    >
+    <b-modal>
       <Game />
+    </b-modal>
+    <b-modal>
+      <Show />
     </b-modal>
   </section>
 </template>
 
 <script>
 import Game from '../../components/game.vue'
+import Show from '../../components/show.vue'
 
 export default {
   name: 'Lobby',
-  components: { Game },
+  components: { Game, Show },
   data () {
     return {
       id: '',
@@ -224,7 +213,6 @@ export default {
       matches: [],
       current_game: {},
       tournament: {},
-      qr_toggle: false,
       url: '',
       live_image: '',
       hover_player: false
@@ -507,14 +495,14 @@ export default {
 
       return matches
     },
-    toggleQR () {
-      this.qr_toggle = !this.qr_toggle
-    },
-    showUrl () {
-      this.$buefy.dialog.alert({
-        title: 'Tournament URL',
-        message: '<h1 class="title"><a href="' + this.url + '">' + this.url + '</a></h1>',
-        confirmText: 'Got it!'
+    showInfo () {
+      this.$buefy.modal.open({
+        parent: this,
+        component: Show,
+        hasModalCard: true,
+        trapFocus: true,
+        canCancel: true,
+        props: { id: this.id }
       })
     },
     updateLiveImage () {

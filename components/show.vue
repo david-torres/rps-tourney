@@ -3,19 +3,19 @@
     <div class="modal-card" style="width: auto">
       <header class="modal-card-head">
         <p class="modal-card-title">
-          Join your new tournament!
+          Join this tournament!
         </p>
       </header>
       <section class="modal-card-body">
+        <p>Share this link:</p>
         <h2 class="title is-3 is-spaced has-text-centered">
-          <b-button outlined type="is-large is-primary" @click="go()">
+          <a :href="url" type="is-large is-primary">
             {{ url }}
-          </b-button>
+          </a>
         </h2>
-        <p>Click the link above to check-in to your tournament, then send it out to your participants! Make sure you get in first so you can become the VIP and gain special admin controls.</p><br>
-        <p>You can also scan/share the QR code below.</p>
+        <p>or scan this QR code with your mobile smartphone camera:</p>
         <div class="has-text-centered">
-          <qrcode :value="url" :options="{ width: 200 }" />
+          <qrcode tag="img" :value="url" :options="{ width: 300 }" />
         </div>
       </section>
       <footer class="modal-card-foot" />
@@ -25,7 +25,7 @@
 
 <script>
 export default {
-  name: 'NewTournament',
+  name: 'Show',
   components: {},
   props: {
     id: {
@@ -42,10 +42,6 @@ export default {
     this.url = this.getUrl()
   },
   methods: {
-    go () {
-      this.$router.push('/lobby/' + this.id)
-      this.$parent.close()
-    },
     getUrl () {
       return window.location.protocol + '//' + window.location.host + '/lobby/' + this.id
     }
