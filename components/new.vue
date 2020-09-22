@@ -25,7 +25,7 @@
 
 <script>
 export default {
-  name: 'NewTournament',
+  name: 'New',
   components: {},
   props: {
     id: {

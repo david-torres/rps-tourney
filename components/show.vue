@@ -15,7 +15,7 @@
         </h2>
         <p>or scan this QR code with your mobile smartphone camera:</p>
         <div class="has-text-centered">
-          <qrcode tag="img" :value="url" :options="{ width: 300 }" />
+          <qrcode :value="url" :options="{ width: 300 }" />
         </div>
       </section>
       <footer class="modal-card-foot" />

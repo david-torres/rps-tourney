@@ -39,23 +39,18 @@
         <br>
       </div>
     </div>
-    <b-modal
-      has-modal-card
-      :destroy-on-hide="false"
-      aria-role="dialog"
-      aria-modal
-    >
-      <NewTournament />
+    <b-modal>
+      <New />
     </b-modal>
   </section>
 </template>
 
 <script>
-import NewTournament from '../components/newTournament.vue'
+import New from '../components/new.vue'
 
 export default {
   name: 'Index',
-  components: { NewTournament },
+  components: { New },
   mounted () {
     this.socket = this.$nuxtSocket({})
     this.socket.on('connect', () => console.log('socket connected'))
@@ -84,7 +79,7 @@ export default {
 
       this.$buefy.modal.open({
         parent: this,
-        component: NewTournament,
+        component: New,
         hasModalCard: true,
         destroyOnHide: true,
         props: { id }
